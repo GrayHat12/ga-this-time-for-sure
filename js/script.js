@@ -5,11 +5,16 @@ const CANVAS_WIDTH = blockSize * 20 + padding * 2;
 const CANVAS_HEIGHT = blockSize * 6 + padding * 2;
 
 const speedSlider = document.getElementById('speed-slider');
+const showDeadCheckBox = document.getElementById('show-dead');
+
+const saveButton = document.getElementById('save');
+const loadButton = document.getElementById('load');
+const loadFile = document.getElementById('loadFile');
 
 let speed = 1;
 
 
-const god = new God(blockSize, padding);
+let god = new God(blockSize, padding);
 
 
 function setup() {
@@ -67,6 +72,41 @@ function findAlivePlayers() {
     return god.population.filter(player => player.alive);
 }
 
+function readTextFile(file) {
+    let reader = new FileReader();
+    reader.addEventListener('load', function (e) {
+        let data = e.target.result;
+        //console.log(data);
+        try {
+            let newgod = unserialize(data,God);
+            god = newgod;
+            god.displayInfo();
+        } catch (e) {
+            console.error(e);
+            alert(e);
+        }
+    });
+    reader.readAsText(file);
+}
+
 speedSlider.onchange = function () {
     speed = parseInt(`${speedSlider.value}`);
+}
+
+showDeadCheckBox.onchange = function () {
+    god.showDEAD = showDeadCheckBox.checked;
+}
+
+loadButton.onclick = function () {
+    loadFile.click();
+}
+
+loadFile.onchange = function () {
+    let file = loadFile.files[0];
+    console.log(file);
+    readTextFile(file);
+}
+
+saveButton.onclick = function () {
+    serialize(god);
 }

@@ -8,6 +8,7 @@
     <title>A Game</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js"></script>
+    <script defer src="js/loaders.js"></script>
     <script defer src="js/zones.js"></script>
     <script defer src="js/obstacle.js"></script>
     <script defer src="js/brain.js"></script>
@@ -22,7 +23,13 @@
             ehgirubnkd
         </div>
         <div>
-            <input id="speed-slider" type="range" min="1" max="20" value="1" />
+            <input title="Speed" id="speed-slider" type="range" min="1" max="20" value="1" />
+            <input id="show-dead" type="checkbox" checked title="Show Dead" />
+            <br />
+            <button id="save">Save</button>
+            <br />
+            <input style="display:none" id="loadFile" placeholder="Load Saved" type='file' accept="application/JSON" />
+            <button id="load">Load Saved</button>
         </div>
         <div id="sketch-holder" class="sketch"></div>
     </main>

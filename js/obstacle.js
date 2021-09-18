@@ -13,6 +13,17 @@ class Obstacles {
     draw = (alive) => {
         this.obstacles.forEach(obstacle => obstacle.draw(alive));
     }
+
+    loadJSON = (serializedObject) => {
+        let instance = new Obstacles(0, 0);
+        Object.assign(instance, serializedObject);
+        instance.obstacles = [];
+        let obstacle = new Obstacle(0, 0, 'left', 0);
+        for(let i = 0; i < serializedObject.obstacles.length; i++) {
+            instance.obstacles.push(obstacle.loadJSON(serializedObject.obstacles[i]));
+        }
+        return instance;
+    }
 }
 
 class Obstacle {
@@ -35,12 +46,12 @@ class Obstacle {
         strokeWeight(2);
         fill('#0100FE');
         circle(this.x, this.y, 2 * this.radius);
-        if(alive) this.move();
+        if (alive) this.move();
     }
     move = () => {
         if (this.direction === "right") {
             this.x -= this.speed;
-        }else if (this.direction === "left") {
+        } else if (this.direction === "left") {
             this.x += this.speed;
         }
         if (this.x <= this.startX) {
@@ -49,5 +60,11 @@ class Obstacle {
         if (this.x >= this.endX) {
             this.direction = "right";
         }
+    }
+
+    loadJSON = (serializedObject) => {
+        let instance = new Obstacle(0, 0, 'left', 0);
+        Object.assign(instance, serializedObject);
+        return instance;
     }
 }

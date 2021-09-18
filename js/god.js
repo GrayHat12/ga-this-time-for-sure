@@ -1,10 +1,12 @@
 class God {
-    constructor(blockSize, padding, starting_population = 100) {
+    constructor(blockSize, padding, starting_population = 200) {
         this.blockSize = blockSize;
         this.padding = padding;
         this.population_size = starting_population;
 
         this.DEATH_PERCENTAGE = 0.1;
+
+        this.showDEAD = true;
 
         this.PREV_AVG_FITNESS = 0;
 
@@ -19,12 +21,82 @@ class God {
         this.endPath = new EndPath(blockSize, padding);
         this.endZone = new EndZone(blockSize, padding);
 
+        this.altPath = new PathZone(blockSize, padding);
+        this.startzonealtpathjoiner = new StartZonePathZoneJoiner(blockSize, padding);
+        this.altpathendzonejoiner = new AltPathEndZoneJoiner(blockSize, padding);
+
         this.startzonestartpathjoiner = new StartZoneStartPathJoiner(blockSize, padding);
         this.startpathmidalleyjoiner = new StartPathMidAlleyJoiner(blockSize, padding);
         this.midalleyendpathjoiner = new MidAlleyEndPathJoiner(blockSize, padding);
         this.endpathendzonejoiner = new EndPathEndZoneJoiner(blockSize, padding);
 
         this.setup();
+    }
+
+    loadJSON = (serializedObject) => {
+        let instance = new God(0, 0, 200);
+        Object.assign(instance, serializedObject);
+
+        instance.altPath = new PathZone(instance.blockSize, instance.padding);
+        instance.altPath = instance.altPath.loadJSON(serializedObject.altPath);
+
+        instance.altpathendzonejoiner = new AltPathEndZoneJoiner(instance.blockSize, instance.padding);
+        instance.altpathendzonejoiner = instance.altpathendzonejoiner.loadJSON(serializedObject.altpathendzonejoiner);
+
+        instance.endPath = new EndPath(instance.blockSize, instance.padding);
+        instance.endPath = instance.endPath.loadJSON(serializedObject.endPath);
+
+        instance.endZone = new EndZone(instance.blockSize, instance.padding);
+        instance.endZone = instance.endZone.loadJSON(serializedObject.endZone);
+
+        instance.endpathendzonejoiner = new EndPathEndZoneJoiner(instance.blockSize, instance.padding);
+        instance.endpathendzonejoiner = instance.endpathendzonejoiner.loadJSON(serializedObject.endpathendzonejoiner);
+
+        instance.midAlley = new MidAlley(instance.blockSize, instance.padding);
+        instance.midAlley = instance.midAlley.loadJSON(serializedObject.midAlley);
+
+        instance.midalleyendpathjoiner = new MidAlleyEndPathJoiner(instance.blockSize, instance.padding);
+        instance.midalleyendpathjoiner = instance.midalleyendpathjoiner.loadJSON(serializedObject.midalleyendpathjoiner);
+
+        instance.startPath = new StartPath(instance.blockSize, instance.padding);
+        instance.startPath = instance.startPath.loadJSON(serializedObject.startPath);
+
+        instance.startZone = new StartZone(instance.blockSize, instance.padding);
+        instance.startZone = instance.startZone.loadJSON(serializedObject.startZone);
+
+        instance.startpathmidalleyjoiner = new StartPathMidAlleyJoiner(instance.blockSize, instance.padding);
+        instance.startpathmidalleyjoiner = instance.startpathmidalleyjoiner.loadJSON(serializedObject.startpathmidalleyjoiner);
+
+        instance.startzonestartpathjoiner = new StartZoneStartPathJoiner(instance.blockSize, instance.padding);
+        instance.startzonestartpathjoiner = instance.startzonestartpathjoiner.loadJSON(serializedObject.startzonestartpathjoiner);
+
+        instance.obstacles = new Obstacles(instance.blockSize, instance.padding);
+        instance.obstacles = instance.obstacles.loadJSON(serializedObject.obstacles);
+
+        instance.startzonealtpathjoiner = new StartZonePathZoneJoiner(instance.blockSize, instance.padding);
+        instance.startzonealtpathjoiner = instance.startzonealtpathjoiner.loadJSON(serializedObject.startzonealtpathjoiner);
+
+        instance.population = [];
+
+        let piece = new Piece(0, 0);
+        for (let i = 0; i < serializedObject.population.length; i++) {
+            let _p = piece.loadJSON(serializedObject.population[i]);
+            _p.zones = [];
+            _p.zones.push(instance.startZone);
+            _p.zones.push(instance.startPath);
+            _p.zones.push(instance.midAlley);
+            _p.zones.push(instance.endPath);
+            _p.zones.push(instance.endZone);
+
+            _p.zones.push(instance.startzonestartpathjoiner);
+            _p.zones.push(instance.startpathmidalleyjoiner);
+            _p.zones.push(instance.midalleyendpathjoiner);
+            _p.zones.push(instance.endpathendzonejoiner);
+
+            instance.population.push(_p);
+        }
+
+        return instance;
     }
 
     setup = () => {
@@ -40,10 +112,15 @@ class God {
 
         for (let i = 0; i < this.population.length; i++) {
             this.population[i].zones.push(this.startZone);
+            //this.population[i].zones.push(this.altPath);
+            this.population[i].zones.push(this.endZone);
+            //this.population[i].zones.push(this.startzonealtpathjoiner);
+            //this.population[i].zones.push(this.altpathendzonejoiner);
+
             this.population[i].zones.push(this.startPath);
             this.population[i].zones.push(this.midAlley);
             this.population[i].zones.push(this.endPath);
-            this.population[i].zones.push(this.endZone);
+            //this.population[i].zones.push(this.endZone);
 
             this.population[i].zones.push(this.startzonestartpathjoiner);
             this.population[i].zones.push(this.startpathmidalleyjoiner);
@@ -56,12 +133,14 @@ class God {
     }
 
     draw = () => {
-        //this.findBestPlayer();
+        this.findBestPlayer();
         this.startZone.draw();
         this.startPath.draw();
         this.midAlley.draw();
         this.endPath.draw();
         this.endZone.draw();
+
+        //this.altPath.draw();
 
         this.obstacles.draw(!this.GAME_ENDED);
 
@@ -69,12 +148,13 @@ class God {
 
         for (let i = this.population.length - 1; i >= 0; i--) {
             if (!this.GAME_ENDED && this.population[i].alive && !this.hasReachedEnd(this.population[i])) {
-                this.population[i].move();
+                this.population[i].move(this.obstacles.obstacles);
                 this.detectCollisions(this.population[i]);
             }
             //if (this.population[i].alive && i !== this.best_player) {
             //if (this.population[i].alive) {
-            this.population[i].draw(false, this.fitness_sum / this.population.length);
+            if (this.population[i].alive) this.population[i].draw(i === this.best_player, this.fitness_sum / this.population.length);
+            else if (this.showDEAD) this.population[i].draw(i === this.best_player, this.fitness_sum / this.population.length);
             //}
         }
 
@@ -86,13 +166,13 @@ class God {
             this.onFinish();
         }
 
-        if (this.frame++ % 100 === 0) {
-            //console.log(this.countAlivePlayers(),this.population.length);
-            //this.calculateFitness();
-            this.calculateFitness();
-            this.calculateFitnessSum();
-            //this.displayInfo();
-        }
+        //if (this.frame++ % 100 === 0) {
+        //console.log(this.countAlivePlayers(),this.population.length);
+        //this.calculateFitness();
+        this.calculateFitness();
+        this.calculateFitnessSum();
+        //this.displayInfo();
+        //}
     }
 
     hasReachedEnd = (piece) => {
@@ -100,6 +180,7 @@ class God {
     }
 
     findBestPlayer = () => {
+        this.best_player = 0;
         for (let i = 0; i < this.population.length; i++) {
             if (this.population[i].fitness > this.population[this.best_player].fitness) {
                 this.best_player = i;
@@ -133,7 +214,7 @@ class God {
 
     calculateFitness = () => {
         this.population.forEach((piece) => {
-            piece.calculateFitness();
+            piece.calculateFitness(this.endZone, this.startZone);
         });
     }
 
@@ -162,27 +243,35 @@ class God {
         nextGeneration[0].isBest = true;
 
         //console.log(this.population[0].fitness - this.population[1].fitness);
-        //let deaths = Math.floor(this.DEATH_PERCENTAGE * this.population.length);
+        let deaths = Math.floor(this.DEATH_PERCENTAGE * this.population.length);
         for (let i = 1; i < this.population.length; i++) {
-            /*if (this.GENERATION > 0 && this.GENERATION % 5 === 0) {
+            let chance = Math.random();
+            if (this.GENERATION > 0 && this.GENERATION % 5 === 0) {
                 if (i >= (this.population.length - deaths)) {
-                    let baby = new Piece(this.blockSize, this.padding);
+                    let newbaby = new Piece(this.blockSize, this.padding);
 
-                    baby.zones.push(this.startZone);
-                    baby.zones.push(this.startPath);
-                    baby.zones.push(this.midAlley);
-                    baby.zones.push(this.endPath);
-                    baby.zones.push(this.endZone);
+                    newbaby.zones.push(this.startZone);
+                    newbaby.zones.push(this.startPath);
+                    newbaby.zones.push(this.midAlley);
+                    newbaby.zones.push(this.endPath);
+                    newbaby.zones.push(this.endZone);
+                    //newbaby.zones.push(this.startzonealtpathjoiner);
+                    //newbaby.zones.push(this.altpathendzonejoiner);
 
-                    baby.zones.push(this.startzonestartpathjoiner);
-                    baby.zones.push(this.startpathmidalleyjoiner);
-                    baby.zones.push(this.midalleyendpathjoiner);
-                    baby.zones.push(this.endpathendzonejoiner);
+                    //newbaby.zones.push(this.startzonestartpathjoiner);
 
-                    nextGeneration.push(baby);
+                    newbaby.zones.push(this.startzonestartpathjoiner);
+                    newbaby.zones.push(this.startpathmidalleyjoiner);
+                    newbaby.zones.push(this.midalleyendpathjoiner);
+                    newbaby.zones.push(this.endpathendzonejoiner);
+
+                    //newbaby.zones.push(this.altPath);
+
+                    if (chance > 0.5) nextGeneration.push(newbaby);
+                    else nextGeneration.push(this.population[0].gimmeBaby());
                     continue;
                 }
-            }*/
+            }
             // select parent based on fitness
             let parent = this.selectParent();
 
@@ -222,7 +311,7 @@ class God {
 
     mutateTheBabies = () => {
         for (let i = 1; i < this.population.length; i++) {
-            this.population[i].brain.mutate();
+            this.population[i].brain.mutate(i, this.population.length);
         }
     }
 
@@ -255,6 +344,7 @@ class God {
             if (distance < ((piece.width / 2) + obstacle.radius)) {
                 hasCollided = true;
                 piece.alive = false;
+                //piece.brain.step = piece.brain.directions.length;
                 break;
             }
         }
