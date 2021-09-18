@@ -117,7 +117,7 @@ showBestPlayersOnlyCheckBox.onchange = function () {
     god.showBEST = showBestPlayersOnlyCheckBox.checked;
 }
 
-function readPretrained(file = "/assets/saved_GEN-208.json") {
+function readPretrained(file = "assets/saved_GEN-208.json") {
     let rawFile = new XMLHttpRequest();
     rawFile.open("GET", file, false);
     rawFile.onreadystatechange = function () {
