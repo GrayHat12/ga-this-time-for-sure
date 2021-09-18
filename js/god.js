@@ -4,7 +4,7 @@ class God {
         this.padding = padding;
         this.population_size = starting_population;
 
-        this.DEATH_PERCENTAGE = 0.1;
+        this.DEATH_PERCENTAGE = 0.02;
 
         this.showDEAD = true;
 
@@ -205,7 +205,7 @@ class God {
                 return;
             }
             if (!this.population[i].alive && !displayed) {
-                this.displayInfo();
+                //this.displayInfo();
                 displayed = true;
             }
         }
@@ -227,20 +227,13 @@ class God {
         this.GAME_ENDED = false;
         this.GENERATION++;
         this.displayInfo();
+        this.obstacles.reset();
         this.frame = 0;
     }
 
     naturalSelection = () => {
 
-        this.population = this.population.sort((a, b) => {
-            return b.fitness - a.fitness;
-        });
-
-        let nextGeneration = [
-            this.population[0].gimmeBaby()
-        ];
-
-        nextGeneration[0].isBest = true;
+        let nextGeneration = [];
 
         //console.log(this.population[0].fitness - this.population[1].fitness);
         let deaths = Math.floor(this.DEATH_PERCENTAGE * this.population.length);
@@ -258,7 +251,7 @@ class God {
                     //newbaby.zones.push(this.startzonealtpathjoiner);
                     //newbaby.zones.push(this.altpathendzonejoiner);
 
-                    //newbaby.zones.push(this.startzonestartpathjoiner);
+                    newbaby.zones.push(this.startzonestartpathjoiner);
 
                     newbaby.zones.push(this.startzonestartpathjoiner);
                     newbaby.zones.push(this.startpathmidalleyjoiner);
@@ -280,6 +273,13 @@ class God {
 
             nextGeneration.push(baby);
         }
+
+        this.population = this.population.sort((a, b) => {
+            return b.fitness - a.fitness;
+        });
+
+        nextGeneration = [this.population[0].gimmeBaby(), ...nextGeneration];
+        nextGeneration[0].isBest = true;
 
         this.population = [];
 
@@ -344,6 +344,7 @@ class God {
             if (distance < ((piece.width / 2) + obstacle.radius)) {
                 hasCollided = true;
                 piece.alive = false;
+                this.displayInfo();
                 //piece.brain.step = piece.brain.directions.length;
                 break;
             }

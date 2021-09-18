@@ -1,7 +1,7 @@
 class Brain {
     constructor(size) {
         this.size = size;
-        this.possibleDirections = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1] /*[0, -1] */, [1, -1]];
+        this.possibleDirections = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1] /*,[0, -1] */, [1, -1]];
         this.step = 0;
         this.directions = [];
         this.randomize();
@@ -63,7 +63,7 @@ class Brain {
         let keys = Object.keys(this.learntmoves);
         mutationRate = Math.min(MUTATION_RATE * index, MUTATION_RATE);
         for (let i = 0; i < this.directions.length; i++) {
-        //for (let i = 0; i < keys.length; i++) {
+            //for (let i = 0; i < keys.length; i++) {
             let rand = Math.random();
             if (rand < mutationRate) {
                 // set this to a random direction

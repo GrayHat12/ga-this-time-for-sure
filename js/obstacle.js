@@ -19,10 +19,19 @@ class Obstacles {
         Object.assign(instance, serializedObject);
         instance.obstacles = [];
         let obstacle = new Obstacle(0, 0, 'left', 0);
-        for(let i = 0; i < serializedObject.obstacles.length; i++) {
+        for (let i = 0; i < serializedObject.obstacles.length; i++) {
             instance.obstacles.push(obstacle.loadJSON(serializedObject.obstacles[i]));
         }
         return instance;
+    }
+
+    reset = () => {
+        this.obstacles = [
+            new Obstacle(this.blockSize, this.padding, 'left', 0),
+            new Obstacle(this.blockSize, this.padding, 'right', 1),
+            new Obstacle(this.blockSize, this.padding, 'left', 2),
+            new Obstacle(this.blockSize, this.padding, 'right', 3),
+        ];
     }
 }
 

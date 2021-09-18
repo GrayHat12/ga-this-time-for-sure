@@ -122,13 +122,14 @@ class Piece {
         let distanceToTarget = this.distanceBetweenTwoPoints(this.x + this.width, this.y, endzone.x, this.y);
         let distanceFromSrc = this.distanceBetweenTwoPoints(this.x + this.width, this.y, startZone.x + startZone.width, startZone.y + startZone.height);
         let distance = distanceToTarget + distanceFromSrc / 2;//(10000 / Math.pow(distanceFromSrc,1));
+        //let distance = distanceToTarget;
         let dis_score = 1 / (distance * distance);
         //let step_score = 1 / (this.brain.step);
         let score = dis_score;// + step_score;
         //score = score / 2;
         if (endzone.isInsideZone(this.x, this.y, this.width, this.height)) {
-            //this.fitness = 1 / (this.brain.step * this.brain.step);
-            this.fitness = 1 + ((1 / (this.brain.step * this.brain.step)) + 1) / 2;
+            this.fitness = dis_score + (1 / (this.brain.step * this.brain.step));
+            //this.fitness = 1 + ((1 / (this.brain.step * this.brain.step)) + 1) / 2;
         } else {
             this.fitness = score;
         }
@@ -136,7 +137,7 @@ class Piece {
 
     gimmeBaby = () => {
         let baby = new Piece(this.blockSize, this.padding);
-        baby.zones = this.zones;
+        baby.zones = [...this.zones];
         baby.brain = this.brain.clone();
         return baby;
     }
