@@ -25,11 +25,12 @@
         <div>
             <input title="Speed" id="speed-slider" type="range" min="1" max="20" value="1" />
             <input id="show-dead" type="checkbox" checked title="Show Dead" />
+            <input id="show-best" type="checkbox" title="Show Best Players Only" />
             <br />
             <button id="save">Save</button>
-            <br />
             <input style="display:none" id="loadFile" placeholder="Load Saved" type='file' accept="application/JSON" />
             <button id="load">Load Saved</button>
+            <button id="load-pre">Load Pretrained</button>
         </div>
         <div id="sketch-holder" class="sketch"></div>
     </main>

@@ -6,9 +6,11 @@ const CANVAS_HEIGHT = blockSize * 6 + padding * 2;
 
 const speedSlider = document.getElementById('speed-slider');
 const showDeadCheckBox = document.getElementById('show-dead');
+const showBestPlayersOnlyCheckBox = document.getElementById('show-best');
 
 const saveButton = document.getElementById('save');
 const loadButton = document.getElementById('load');
+const loadPretrainedButton = document.getElementById('load-pre');
 const loadFile = document.getElementById('loadFile');
 
 let speed = 1;
@@ -78,7 +80,7 @@ function readTextFile(file) {
         let data = e.target.result;
         //console.log(data);
         try {
-            let newgod = unserialize(data,God);
+            let newgod = unserialize(data, God);
             god = newgod;
             god.displayInfo();
         } catch (e) {
@@ -109,4 +111,30 @@ loadFile.onchange = function () {
 
 saveButton.onclick = function () {
     serialize(god);
+}
+
+showBestPlayersOnlyCheckBox.onchange = function () {
+    god.showBEST = showBestPlayersOnlyCheckBox.checked;
+}
+
+function readPretrained(file = "/assets/saved_GEN-208.json") {
+    let rawFile = new XMLHttpRequest();
+    rawFile.open("GET", file, false);
+    rawFile.onreadystatechange = function () {
+        if (rawFile.readyState === 4) {
+            if (rawFile.status === 200 || rawFile.status == 0) {
+                let allText = rawFile.responseText;
+                let newgod = unserialize(allText, God);
+                god = newgod;
+                god.displayInfo();
+                console.log(god);
+                //alert(allText);
+            }
+        }
+    }
+    rawFile.send(null);
+}
+
+loadPretrainedButton.onclick = function () {
+    readPretrained();
 }

@@ -11,6 +11,7 @@ class God {
         this.PREV_AVG_FITNESS = 0;
 
         this.fitness_sum = 0;
+        this.showBEST = false;
         this.GENERATION = 1;
         this.best_player = 0;
         this.frame = 0;
@@ -147,14 +148,24 @@ class God {
         this.detectFinish();
 
         for (let i = this.population.length - 1; i >= 0; i--) {
-            if (!this.GAME_ENDED && this.population[i].alive && !this.hasReachedEnd(this.population[i])) {
+
+            let isBestPlayer = i === this.best_player;
+            let avg_fitness = this.fitness_sum / this.population.length;
+            let reached_goal = this.hasReachedEnd(this.population[i]);
+
+            if (!this.GAME_ENDED && this.population[i].alive && !reached_goal) {
+
                 this.population[i].move(this.obstacles.obstacles);
                 this.detectCollisions(this.population[i]);
             }
             //if (this.population[i].alive && i !== this.best_player) {
             //if (this.population[i].alive) {
-            if (this.population[i].alive) this.population[i].draw(i === this.best_player, this.fitness_sum / this.population.length);
-            else if (this.showDEAD) this.population[i].draw(i === this.best_player, this.fitness_sum / this.population.length);
+            if (this.population[i].alive) {
+
+                if (this.showBEST && (i === this.best_player || this.population[i].isBest)) this.population[i].draw(isBestPlayer, avg_fitness, reached_goal);
+                else if (!this.showBEST) this.population[i].draw(isBestPlayer, avg_fitness, reached_goal);
+            }
+            else if (this.showDEAD) this.population[i].draw(isBestPlayer, avg_fitness, reached_goal);
             //}
         }
 
@@ -176,7 +187,9 @@ class God {
     }
 
     hasReachedEnd = (piece) => {
-        return this.endZone.isInsideZone(piece.x, piece.y, piece.width, piece.height);
+        let end = this.endZone.isInsideZone(piece.x, piece.y, piece.width, piece.height);
+        //if (end) console.log("Reached end!");
+        return end;
     }
 
     findBestPlayer = () => {
@@ -221,6 +234,7 @@ class God {
     onFinish = () => {
         this.calculateFitness();
         this.calculateFitnessSum();
+        console.log(this.population[this.best_player].brain.step);
         this.PREV_AVG_FITNESS = this.fitness_sum / this.population.length;
         this.naturalSelection();
         this.mutateTheBabies();
@@ -310,8 +324,9 @@ class God {
     }
 
     mutateTheBabies = () => {
+        let RATE = 0.4;
         for (let i = 1; i < this.population.length; i++) {
-            this.population[i].brain.mutate(i, this.population.length);
+            if (Math.random() < RATE) this.population[i].brain.mutate(i, this.population.length);
         }
     }
 

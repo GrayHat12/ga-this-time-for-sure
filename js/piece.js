@@ -9,19 +9,20 @@ class Piece {
         this.blockSize = blockSize;
         this.isBest = false;
         this.padding = padding;
-        this.brain = new Brain(5000);
+        this.brain = new Brain(2660);
         this.width = blockSize / 2;
         this.height = blockSize / 2;
         this.x = (0 + this.padding + this.blockSize * 4) / 2 - this.width / 2;
-        //this.x = (0 + this.padding + this.blockSize * 6) / 2 - this.width / 2;
+        //this.x = (0 + this.padding + this.blockSize * 14) ;// 2 - this.width / 2;
         this.y = (0 + this.padding + this.blockSize * 6) / 2 - this.height / 2;
-        //this.y = (0 + this.padding + this.blockSize * 5);
+        //this.y = (0 + this.padding + this.blockSize * 0);
     }
 
-    draw = (fittest = false, avgFitness = 0) => {
+    draw = (fittest = false, avgFitness = 0, reached_end) => {
         stroke(0);
         strokeWeight(1);
-        if (this.isBest) fill('green');
+        if (reached_end) fill('purple');
+        else if (this.isBest) fill('green');
         else if (fittest) fill('#007ACC');
         else if (this.fitness > avgFitness) fill('yellow');
         else fill('red');
@@ -114,21 +115,21 @@ class Piece {
 
     distanceBetweenTwoPoints = (x1, y1, x2, y2) => {
         let _dist = dist(x1, y1, x2, y2);
-        if (x1 <= x2) return -_dist;
-        else return _dist;
+        if (x1 < x2) return _dist;
+        else return -_dist;
     }
 
     calculateFitness = (endzone, startZone) => {
-        let distanceToTarget = this.distanceBetweenTwoPoints(this.x + this.width, this.y, endzone.x, this.y);
-        let distanceFromSrc = this.distanceBetweenTwoPoints(this.x + this.width, this.y, startZone.x + startZone.width, startZone.y + startZone.height);
-        let distance = distanceToTarget + distanceFromSrc / 2;//(10000 / Math.pow(distanceFromSrc,1));
+        let distanceToTarget = this.distanceBetweenTwoPoints(this.x + this.width, this.y, endzone.x, endzone.y);
+        let distanceFromSrc = this.distanceBetweenTwoPoints(this.x + this.width, this.y, startZone.x + startZone.width, this.y);
+        let distance = distanceToTarget + (distanceFromSrc / (this.blockSize * 20 + this.padding * 2));//(10000 / Math.pow(distanceFromSrc,1));
         //let distance = distanceToTarget;
-        let dis_score = 1 / (distance * distance);
+        let dis_score = 1 / (distance * distance * this.brain.step);
         //let step_score = 1 / (this.brain.step);
         let score = dis_score;// + step_score;
         //score = score / 2;
         if (endzone.isInsideZone(this.x, this.y, this.width, this.height)) {
-            this.fitness = dis_score + (1 / (this.brain.step * this.brain.step));
+            this.fitness = 1 + dis_score + (1 / (this.brain.step * this.brain.step));
             //this.fitness = 1 + ((1 / (this.brain.step * this.brain.step)) + 1) / 2;
         } else {
             this.fitness = score;
@@ -146,8 +147,13 @@ class Piece {
         let instance = new Piece(0, 0);
         Object.assign(instance, serializedObject);
 
-        instance.brain = new Brain(instance.brain.size, instance.brain.step);
-        instance.brain = instance.brain.loadJSON(instance.brain);
+        instance.brain = new Brain(this.brain.size);
+        instance.brain = instance.brain.loadJSON(serializedObject.brain);
+
+        instance.width = instance.blockSize / 2;
+        instance.height = instance.blockSize / 2;
+        instance.x = (0 + instance.padding + instance.blockSize * 4) / 2 - instance.width / 2;
+        instance.y = (0 + instance.padding + instance.blockSize * 6) / 2 - instance.height / 2;
 
         /*instance.zones = [];
         let zone = new Zone(0, 0);

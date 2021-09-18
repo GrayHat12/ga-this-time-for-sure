@@ -22,6 +22,7 @@ class Obstacles {
         for (let i = 0; i < serializedObject.obstacles.length; i++) {
             instance.obstacles.push(obstacle.loadJSON(serializedObject.obstacles[i]));
         }
+        instance.reset();
         return instance;
     }
 
@@ -36,7 +37,7 @@ class Obstacles {
 }
 
 class Obstacle {
-    speed = 3;
+    speed = 1.2;
     constructor(blockSize, padding, dirX, topOffset) {
         this.blockSize = blockSize;
         this.padding = padding;

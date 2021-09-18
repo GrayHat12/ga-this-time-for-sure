@@ -61,13 +61,15 @@ class Brain {
         const MUTATION_RATE = 0.01;
         let mutationRate = 1 / size;
         let keys = Object.keys(this.learntmoves);
-        mutationRate = Math.min(MUTATION_RATE * index, MUTATION_RATE);
+        //mutationRate = Math.min(MUTATION_RATE * index, MUTATION_RATE);
+        mutationRate = MUTATION_RATE;
         for (let i = 0; i < this.directions.length; i++) {
             //for (let i = 0; i < keys.length; i++) {
             let rand = Math.random();
             if (rand < mutationRate) {
                 // set this to a random direction
-                let randomDirection = this.possibleDirections[Math.floor(Math.random() * this.possibleDirections.length)];
+                let randomDirection = this.getRandomMove();
+                while (randomDirection === this.directions[i]) randomDirection = this.getRandomMove();
                 this.directions[i] = randomDirection;
                 //this.learntmoves[keys[i]] = randomDirection;
             }
@@ -76,7 +78,14 @@ class Brain {
 
     loadJSON = (serializedObject) => {
         let instance = new Brain(0);
-        Object.assign(instance, serializedObject);
+        if (this.size > serializedObject.size) {
+            instance.directions = [...serializedObject.directions,...(new Brain(this.size - serializedObject.size)).directions];
+        }else if (this.size < serializedObject.size) {
+            instance.directions = [...serializedObject.directions.slice(0, this.size)];
+        }else {
+            instance.directions = [...serializedObject.directions];
+        }
+        instance.size = this.size;
         return instance;
     }
 }
